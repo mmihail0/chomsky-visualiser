@@ -3,74 +3,51 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chomsky Grammar & Semi-Thue System Interactive Visualizer</title>
+  <title>Chomsky Grammar and Semi-Thue System Interactive Visualiser</title>
   <meta name="description" content="Interactive playground for formal grammars (Chomsky Hierarchy Type 0–3) and Semi-Thue string rewriting systems with BFS derivation tree.">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-  <!-- Main Application Window -->
   <div id="app-window">
-    
-    <!-- Titlebar Header -->
     <div class="win-titlebar">
       <div class="titlebar-left">
-        <span>Chomsky Grammar &amp; Semi-Thue System Visualizer</span>
-        <span class="titlebar-subtitle">| Formal Language Playground &amp; BFS Derivation Engine</span>
-      </div>
-      <div class="titlebar-actions">
-        <button id="btn-quick-diagnostics" class="btn btn-secondary" style="padding: 2px 8px; font-size: 10px;">Diagnostics</button>
+        <span>Chomsky Grammar and Semi-Thue System Visualiser</span>
+        <span class="titlebar-subtitle">| Formal Language Playground and BFS Derivation Engine</span>
       </div>
     </div>
-
-    <!-- Navigation Tabs -->
     <div class="win-tabs-bar">
-      <button id="tab-visualizer" class="win-tab active">Interactive Visualizer</button>
+      <button id="tab-visualizer" class="win-tab active">Interactive Visualiser</button>
       <button id="tab-theory" class="win-tab">Theory &amp; Reference Guide</button>
     </div>
-
-    <!-- Tab Content Wrapper -->
     <div class="tab-content-wrapper">
-
-      <!-- ===================================================================
-           TAB 1: INTERACTIVE VISUALIZER
-           =================================================================== -->
       <div id="panel-visualizer" class="tab-panel active">
         <div class="visualizer-dashboard">
-          
-          <!-- LEFT SIDEBAR: CONTROLS & RULES -->
           <div class="control-sidebar">
-
-            <!-- Presets Group -->
             <div class="card-panel">
               <div class="card-title">Presets Library</div>
               <select id="select-presets" class="form-select"></select>
             </div>
 
-            <!-- Grammar Configuration Group -->
             <div class="card-panel">
               <div class="card-title">Grammar Configuration</div>
 
-              <!-- Chomsky Tier Badge -->
               <div class="tier-badge-container">
                 <span style="font-weight: bold; font-size: 11px;">Hierarchy Tier:</span>
                 <span id="chomsky-badge" class="tier-badge badge-type2">Type-2 (Context-Free)</span>
                 <button id="btn-badge-details" class="btn" style="padding: 1px 6px; font-size: 10px;" title="View classification details">Details</button>
               </div>
 
-              <!-- Start Symbol Input -->
               <div class="form-row">
                 <label class="form-label" for="input-start-symbol">Start Symbol (S0):</label>
                 <input id="input-start-symbol" type="text" class="form-input" value="S" placeholder="e.g. S" spellcheck="false">
               </div>
 
-              <!-- Target String Input -->
               <div class="form-row">
                 <label class="form-label" for="input-target-string">Target String (w):</label>
                 <input id="input-target-string" type="text" class="form-input" value="aabb" placeholder="e.g. aabb" spellcheck="false">
               </div>
 
-              <!-- Production Rules Grid -->
               <div style="margin-top: 8px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
                 <span style="font-weight: bold; font-size: 11px;">Production Rules:</span>
                 <button id="btn-insert-epsilon" class="btn" style="padding: 1px 6px; font-size: 10px;" title="Insert ε (empty string)">Insert ε</button>
@@ -87,12 +64,10 @@
                     </tr>
                   </thead>
                   <tbody id="rules-tbody">
-                    <!-- Injected dynamically by JS -->
                   </tbody>
                 </table>
               </div>
 
-              <!-- Reset Rules moved in between Add Rule and Clear Rules -->
               <div style="display: flex; gap: 6px; margin-top: 6px;">
                 <button id="btn-add-rule" class="btn" style="flex: 1;">Add Rule</button>
                 <button id="btn-reset-rules" class="btn" style="flex: 1;" title="Reset rules and inputs to default preset">Reset Rules</button>
@@ -100,7 +75,6 @@
               </div>
             </div>
 
-            <!-- Search Limits Group -->
             <div class="card-panel">
               <div class="card-title">Search &amp; Safety Limits</div>
               <div class="form-row">
@@ -119,11 +93,10 @@
               </div>
             </div>
 
-            <!-- Execution Action Controls -->
             <div class="card-panel">
               <div class="card-title">Execution Controls</div>
               <div class="action-grid-2">
-                <button id="btn-recognize" class="btn btn-primary">Recognize</button>
+                <button id="btn-recognize" class="btn btn-primary">Recognise</button>
                 <button id="btn-step" class="btn">Step</button>
                 <button id="btn-autoplay" class="btn">Auto-Play</button>
                 <button id="btn-pause" class="btn">Pause</button>
@@ -133,7 +106,6 @@
                 <button id="btn-clear-tree" class="btn" style="width: 100%;" title="Clear derivation tree and restart engine without resetting rules">Clear Tree</button>
               </div>
 
-              <!-- Speed Slider -->
               <div class="slider-container">
                 <span style="font-size: 11px; font-weight: bold; width: 75px;">Step Delay:</span>
                 <input id="slider-speed" type="range" min="30" max="1000" step="20" value="250">
@@ -143,10 +115,8 @@
 
           </div>
 
-          <!-- MAIN WORKSPACE: METRICS, CANVAS & TRACER -->
           <div class="main-workspace">
 
-            <!-- Real-Time Metrics Bar -->
             <div class="metrics-bar">
               <div class="metric-item">
                 <span class="metric-label">Status:</span>
@@ -170,7 +140,6 @@
               </div>
             </div>
 
-            <!-- Derivation Tree Canvas Area -->
             <div class="canvas-wrapper">
               <div class="canvas-toolbar">
                 <div class="canvas-toolbar-group">
@@ -190,21 +159,18 @@
               <div id="tree-canvas" class="tree-canvas-area"></div>
             </div>
 
-            <!-- Bottom Split Panels -->
             <div class="bottom-panels-container">
               
-              <!-- Derivation Path Tracer -->
               <div class="bottom-panel" style="flex: 1.4;">
                 <div class="bottom-panel-header">
                   <span>Derivation Path Tracer</span>
                   <span style="font-size: 10px; font-weight: normal; color: #64748b;">Sequence from Root to Target</span>
                 </div>
                 <div id="tracer-container" class="bottom-panel-body">
-                  <div style="color: #64748b; font-style: italic; padding: 6px;">Tree cleared. Click Recognize or Step to begin.</div>
+                  <div style="color: #64748b; font-style: italic; padding: 6px;">Tree cleared. Click Recognise or Step to begin.</div>
                 </div>
               </div>
 
-              <!-- State Queue Explorer -->
               <div class="bottom-panel" style="flex: 0.9;">
                 <div class="bottom-panel-header">
                   <span>State Queue Explorer</span>
@@ -215,7 +181,6 @@
                 </div>
               </div>
 
-              <!-- Selected Node Inspector -->
               <div class="bottom-panel" style="flex: 0.8;">
                 <div class="bottom-panel-header">
                   <span>Node Inspector</span>
@@ -232,16 +197,13 @@
         </div>
       </div>
 
-      <!-- ===================================================================
-           TAB 2: THEORY & REFERENCE GUIDE
-           =================================================================== -->
       <div id="panel-theory" class="tab-panel">
         <div class="theory-scroll-container">
           
           <h1>Formal Grammars, Chomsky Hierarchy &amp; Semi-Thue Rewriting Systems</h1>
           <p>
             Formal grammars provide mathematical frameworks for describing syntax and language generation. 
-            Semi-Thue systems formalize string rewriting operations that model non-deterministic computational processes.
+            Semi-Thue systems formalise string rewriting operations that model non-deterministic computational processes.
           </p>
 
           <h2>1. The Chomsky Hierarchy (Language Inclusion: L3 ⊂ L2 ⊂ L1 ⊂ L0)</h2>
@@ -249,7 +211,6 @@
             Introduced by Noam Chomsky in 1956, formal grammars are classified into four tiers based on production rule constraints:
           </p>
 
-          <!-- Solid-color Venn diagram, no gradients -->
           <div class="venn-container">
             <svg width="680" height="230" viewBox="0 0 680 230" style="display: block; max-width: 100%;">
               <rect x="10" y="10" width="660" height="210" fill="#fee2e2" stroke="#b91c1c" stroke-width="2"/>
@@ -273,7 +234,7 @@
                 <th>Tier</th>
                 <th>Grammar Type</th>
                 <th>Production Rule Form</th>
-                <th>Recognizing Automaton</th>
+                <th>Recognising Automaton</th>
                 <th>Parsing Complexity</th>
                 <th>Word Problem</th>
               </tr>
@@ -319,12 +280,12 @@
           <div class="theory-card">
             <h3 style="color: #166534;">Type-3: Regular Grammars</h3>
             <p>
-              Regular grammars produce languages recognized by finite state automata. 
+              Regular grammars produce languages recognised by finite state automata. 
               Non-terminals can appear only at the extreme right (Right-Linear) or extreme left (Left-Linear) of the production rule.
             </p>
             <p><strong>Example:</strong> Alternating tokens <span class="theory-code">(ab)+</span>:</p>
             <p><span class="theory-code">S → aA</span>, <span class="theory-code">A → bS</span>, <span class="theory-code">A → b</span></p>
-            <button class="btn btn-secondary" style="margin-top: 6px;" data-load-preset="regular_ab">Load Alternating (ab)+ into Visualizer</button>
+            <button class="btn btn-secondary" style="margin-top: 6px;" data-load-preset="regular_ab">Load Alternating (ab)+ into Visualiser</button>
           </div>
 
           <div class="theory-card">
@@ -335,11 +296,11 @@
             </p>
             <p><strong>Example 1:</strong> Balanced counting <span class="theory-code">{ aⁿbⁿ | n ≥ 0 }</span>:</p>
             <p><span class="theory-code">S → aSb | ε</span></p>
-            <button class="btn btn-secondary" style="margin-top: 6px;" data-load-preset="anbn">Load aⁿbⁿ into Visualizer</button>
+            <button class="btn btn-secondary" style="margin-top: 6px;" data-load-preset="anbn">Load aⁿbⁿ into Visualiser</button>
 
             <p style="margin-top: 12px;"><strong>Example 2:</strong> Dyck Language (Balanced Parentheses):</p>
             <p><span class="theory-code">S → (S)S | ε</span></p>
-            <button class="btn btn-secondary" style="margin-top: 6px;" data-load-preset="balanced_parens">Load Balanced Parentheses into Visualizer</button>
+            <button class="btn btn-secondary" style="margin-top: 6px;" data-load-preset="balanced_parens">Load Balanced Parentheses into Visualiser</button>
           </div>
 
           <div class="theory-card">
@@ -350,7 +311,7 @@
             </p>
             <p><strong>Example:</strong> Three-way balanced language <span class="theory-code">{ aⁿbⁿcⁿ | n ≥ 1 }</span>:</p>
             <p><span class="theory-code">S → aSBC | aBC</span>, <span class="theory-code">CB → BC</span>, <span class="theory-code">aB → ab</span>, <span class="theory-code">bB → bb</span>, <span class="theory-code">bC → bc</span>, <span class="theory-code">cC → cc</span></p>
-            <button class="btn btn-secondary" style="margin-top: 6px;" data-load-preset="anbncn">Load aⁿbⁿcⁿ into Visualizer</button>
+            <button class="btn btn-secondary" style="margin-top: 6px;" data-load-preset="anbncn">Load aⁿbⁿcⁿ into Visualiser</button>
           </div>
 
           <div class="theory-card">
@@ -361,7 +322,7 @@
             </p>
             <p><strong>Example:</strong> Ripple-Carry Binary Incrementer (<span class="theory-code">&gt;1011+</span> → <span class="theory-code">1100</span>):</p>
             <p><span class="theory-code">0+ → 1</span>, <span class="theory-code">1+ → +0</span>, <span class="theory-code">&gt;+ → &gt;1</span>, <span class="theory-code">&gt; → ε</span></p>
-            <button class="btn btn-secondary" style="margin-top: 6px;" data-load-preset="semi_thue_increment">Load Binary Incrementer into Visualizer</button>
+            <button class="btn btn-secondary" style="margin-top: 6px;" data-load-preset="semi_thue_increment">Load Binary Incrementer into Visualiser</button>
           </div>
 
           <h2>3. Algorithm &amp; Search Theory</h2>
@@ -381,7 +342,7 @@
           <h3>The Halting Problem &amp; Safety Limits</h3>
           <p>
             The Word Problem for general Type-0 grammars is <strong>undecidable</strong> (equivalent to the Halting Problem). 
-            Rules can expand and contract strings arbitrarily. Therefore, practical visualizers must enforce 
+            Rules can expand and contract strings arbitrarily. Therefore, practical visualisers must enforce 
             <strong>Max Search Depth</strong> and <strong>Max Visited Nodes</strong> safety limits to guarantee termination.
           </p>
 
@@ -399,7 +360,6 @@
 
   </div>
 
-  <!-- Modal Dialog for Classification Details -->
   <div id="modal-overlay" class="modal-overlay" style="display: none;">
     <div class="modal-window">
       <div class="modal-header">
@@ -407,7 +367,6 @@
         <button id="btn-modal-close" class="btn" style="padding: 1px 6px; font-size: 10px;">✕</button>
       </div>
       <div id="modal-content" class="modal-body">
-        <!-- Injected dynamically -->
       </div>
       <div class="modal-footer">
         <button id="btn-modal-ok" class="btn btn-primary" style="width: 75px;">OK</button>
