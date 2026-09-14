@@ -1,8 +1,3 @@
-/**
- * Chomsky Grammar & Semi-Thue System - Real-Time Incremental SVG Visualizer
- * File: js/visualizer.js
- */
-
 export class DerivationTreeVisualizer {
   constructor(containerElement, options = {}) {
     this.container = containerElement;
@@ -20,7 +15,6 @@ export class DerivationTreeVisualizer {
     this.nodesGroup = null;
     this.placeholderText = null;
 
-    // Pan & Zoom state
     this.scale = 1;
     this.panX = 30;
     this.panY = 30;
@@ -28,12 +22,11 @@ export class DerivationTreeVisualizer {
     this.dragStartX = 0;
     this.dragStartY = 0;
 
-    // Incremental layout state
     this.nodesMap = new Map();
-    this.nodePositions = new Map(); // id -> { x, y, width, height }
+    this.nodePositions = new Map();
     this.renderedNodeIds = new Set();
     this.renderedEdgeIds = new Set();
-    this.levelNodeCounts = []; // depth -> count
+    this.levelNodeCounts = [];
     this.rootNode = null;
     this.targetNode = null;
     this.selectedNodeId = null;
@@ -161,7 +154,7 @@ export class DerivationTreeVisualizer {
       this.placeholderText.style.fontWeight = 'bold';
       this.placeholderText.style.textAlign = 'center';
       this.placeholderText.style.pointerEvents = 'none';
-      this.placeholderText.textContent = 'Derivation tree is empty. Click "Recognize" or "Step" to begin.';
+      this.placeholderText.textContent = 'Derivation tree is empty. Click "Recognise" or "Step" to begin.';
       this.container.appendChild(this.placeholderText);
     } else {
       this.placeholderText.style.display = 'block';
@@ -174,9 +167,6 @@ export class DerivationTreeVisualizer {
     }
   }
 
-  /**
-   * Complete visual wipe of the tree
-   */
   clear() {
     this.edgesGroup.innerHTML = '';
     this.nodesGroup.innerHTML = '';
@@ -193,9 +183,6 @@ export class DerivationTreeVisualizer {
     }
   }
 
-  /**
-   * Calculate position for a single node incrementally
-   */
   _getNodePosition(node) {
     if (this.nodePositions.has(node.id)) {
       return this.nodePositions.get(node.id);
@@ -219,33 +206,25 @@ export class DerivationTreeVisualizer {
     return pos;
   }
 
-  /**
-   * Real-time incremental rendering: adds only new nodes and edges!
-   */
   renderRealTime(nodesMap, rootNode, targetNode = null) {
     this.hidePlaceholder();
     this.nodesMap = nodesMap;
     this.rootNode = rootNode;
     this.targetNode = targetNode;
 
-    // Render root if not yet rendered
     if (rootNode && !this.renderedNodeIds.has(rootNode.id)) {
       this._renderNodeElement(rootNode);
     }
 
-    // Render all newly added nodes
     for (const [id, node] of nodesMap.entries()) {
       if (!this.renderedNodeIds.has(id)) {
-        // Draw connector from parent first
         if (node.parentId && this.nodePositions.has(node.parentId)) {
           this._renderEdgeElement(node);
         }
-        // Draw node
         this._renderNodeElement(node);
       }
     }
 
-    // If target found, highlight target path in green
     if (targetNode) {
       this.highlightTargetPath(targetNode);
     }
@@ -309,7 +288,6 @@ export class DerivationTreeVisualizer {
     g.setAttribute('transform', `translate(${pos.x}, ${pos.y})`);
     g.style.cursor = 'pointer';
 
-    // Outer card
     const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
     rect.setAttribute('id', `node_rect_${node.id}`);
     rect.setAttribute('x', '0');
@@ -337,7 +315,6 @@ export class DerivationTreeVisualizer {
     if (isPruned) rect.setAttribute('stroke-dasharray', '3,2');
     g.appendChild(rect);
 
-    // Header banner
     const header = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
     header.setAttribute('id', `node_header_${node.id}`);
     header.setAttribute('x', '1');
@@ -353,7 +330,6 @@ export class DerivationTreeVisualizer {
     header.setAttribute('fill', headerColor);
     g.appendChild(header);
 
-    // Header text
     const hText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     hText.setAttribute('id', `node_htext_${node.id}`);
     hText.setAttribute('x', '4');
@@ -371,7 +347,6 @@ export class DerivationTreeVisualizer {
     hText.textContent = label;
     g.appendChild(hText);
 
-    // Main string
     const sText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     sText.setAttribute('x', pos.width / 2);
     sText.setAttribute('y', '30');
@@ -385,7 +360,6 @@ export class DerivationTreeVisualizer {
     sText.textContent = disp;
     g.appendChild(sText);
 
-    // Subtitle
     if (node.ruleApplied) {
       const sub = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       sub.setAttribute('x', pos.width / 2);
@@ -410,7 +384,6 @@ export class DerivationTreeVisualizer {
   highlightTargetPath(targetNode) {
     let curr = targetNode;
     while (curr) {
-      // Highlight edge to parent
       const edge = document.getElementById(`edge_${curr.id}`);
       if (edge) {
         edge.setAttribute('stroke', '#2e7d32');
@@ -423,7 +396,6 @@ export class DerivationTreeVisualizer {
         edgeLabel.setAttribute('font-weight', 'bold');
       }
 
-      // Highlight node
       const rect = document.getElementById(`node_rect_${curr.id}`);
       if (rect) {
         rect.setAttribute('stroke', '#2e7d32');
@@ -440,7 +412,6 @@ export class DerivationTreeVisualizer {
   }
 
   selectNode(nodeId) {
-    // Remove previous selection outline
     if (this.selectedNodeId) {
       const prevSel = document.getElementById(`sel_${this.selectedNodeId}`);
       if (prevSel) prevSel.remove();
