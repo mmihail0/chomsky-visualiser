@@ -1,8 +1,3 @@
-/**
- * Chomsky Grammar & Semi-Thue System - Real-Time Application Controller
- * File: js/app.js
- */
-
 import { RuleModel, GrammarModel, ChomskyType } from './grammar.js';
 import { BFSDerivationEngine, EngineStatus } from './engine.js';
 import { DerivationTreeVisualizer } from './visualizer.js';
@@ -23,18 +18,15 @@ class ChomskyApp {
     this.initPresetsDropdown();
     this.bindEvents();
 
-    // Load initial default preset (aⁿbⁿ)
     this.loadPreset('anbn');
   }
 
   initElements() {
-    // Tabs
     this.tabVisualizer = document.getElementById('tab-visualizer');
     this.tabTheory = document.getElementById('tab-theory');
     this.panelVisualizer = document.getElementById('panel-visualizer');
     this.panelTheory = document.getElementById('panel-theory');
 
-    // Grammar Inputs
     this.inputStartSymbol = document.getElementById('input-start-symbol');
     this.inputTargetString = document.getElementById('input-target-string');
     this.selectPresets = document.getElementById('select-presets');
@@ -47,12 +39,10 @@ class ChomskyApp {
     this.btnBadgeDetails = document.getElementById('btn-badge-details');
     this.btnQuickDiagnostics = document.getElementById('btn-quick-diagnostics');
 
-    // Search Parameters
     this.inputMaxDepth = document.getElementById('input-max-depth');
     this.inputMaxNodes = document.getElementById('input-max-nodes');
     this.checkLengthPruning = document.getElementById('check-length-pruning');
 
-    // Execution Controls
     this.btnRecognize = document.getElementById('btn-recognize');
     this.btnStep = document.getElementById('btn-step');
     this.btnAutoPlay = document.getElementById('btn-autoplay');
@@ -61,25 +51,21 @@ class ChomskyApp {
     this.sliderSpeed = document.getElementById('slider-speed');
     this.speedDisplay = document.getElementById('speed-display');
 
-    // Metrics Display
     this.metricVisited = document.getElementById('metric-visited');
     this.metricQueue = document.getElementById('metric-queue');
     this.metricDepth = document.getElementById('metric-depth');
     this.metricTime = document.getElementById('metric-time');
     this.statusIndicator = document.getElementById('status-indicator');
 
-    // Toolbar Canvas
     this.btnZoomIn = document.getElementById('btn-zoom-in');
     this.btnZoomOut = document.getElementById('btn-zoom-out');
     this.btnZoomReset = document.getElementById('btn-zoom-reset');
     this.btnZoomFit = document.getElementById('btn-zoom-fit');
 
-    // Bottom Panels
     this.tracerContainer = document.getElementById('tracer-container');
     this.queueContainer = document.getElementById('queue-container');
     this.nodeInspectorContainer = document.getElementById('node-inspector-container');
 
-    // Modal
     this.modalOverlay = document.getElementById('modal-overlay');
     this.modalTitle = document.getElementById('modal-title');
     this.modalContent = document.getElementById('modal-content');
@@ -114,16 +100,13 @@ class ChomskyApp {
   }
 
   bindEvents() {
-    // Navigation Tabs
     this.tabVisualizer.addEventListener('click', () => this.switchTab('visualizer'));
     this.tabTheory.addEventListener('click', () => this.switchTab('theory'));
 
-    // Presets
     this.selectPresets.addEventListener('change', (e) => {
       if (e.target.value) this.loadPreset(e.target.value);
     });
 
-    // Rule Grid Management
     this.btnAddRule.addEventListener('click', () => {
       this.addRuleRow('', '');
       this.debouncedGrammarUpdate();
@@ -152,44 +135,37 @@ class ChomskyApp {
       this.engine.targetString = this.inputTargetString.value.trim();
     });
 
-    // Search Limits & Settings
     this.inputMaxDepth.addEventListener('change', () => this.syncSearchConfig());
     this.inputMaxNodes.addEventListener('change', () => this.syncSearchConfig());
     this.checkLengthPruning.addEventListener('change', () => this.syncSearchConfig());
 
-    // Execution Controls
     this.btnRecognize.addEventListener('click', () => this.startRealtimeSearch());
     this.btnStep.addEventListener('click', () => this.stepSearch());
     this.btnAutoPlay.addEventListener('click', () => this.toggleAutoPlay());
     this.btnPause.addEventListener('click', () => this.pauseSearch());
     this.btnClearTree.addEventListener('click', () => this.clearTree());
 
-    // Speed Slider
     this.sliderSpeed.addEventListener('input', (e) => {
       this.autoPlaySpeedMs = Number(e.target.value);
       this.speedDisplay.textContent = `${this.autoPlaySpeedMs}ms`;
     });
 
-    // Canvas Toolbar
     this.btnZoomIn.addEventListener('click', () => this.visualizer.zoomIn());
     this.btnZoomOut.addEventListener('click', () => this.visualizer.zoomOut());
     this.btnZoomReset.addEventListener('click', () => this.visualizer.resetZoom());
     this.btnZoomFit.addEventListener('click', () => this.visualizer.fitToScreen());
 
-    // Diagnostics Modals
     this.btnBadgeDetails.addEventListener('click', () => this.showGrammarClassificationModal());
     if (this.btnQuickDiagnostics) {
       this.btnQuickDiagnostics.addEventListener('click', () => this.showGrammarClassificationModal());
     }
 
-    // Modal Close
     this.btnModalClose.addEventListener('click', () => this.closeModal());
     this.btnModalOk.addEventListener('click', () => this.closeModal());
     this.modalOverlay.addEventListener('click', (e) => {
       if (e.target === this.modalOverlay) this.closeModal();
     });
 
-    // Example links inside Theory guide
     document.querySelectorAll('[data-load-preset]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const presetId = e.currentTarget.getAttribute('data-load-preset');
@@ -299,7 +275,6 @@ class ChomskyApp {
     this.currentGrammar = this.getGrammarFromUI();
     this.classification = this.currentGrammar.classify();
 
-    // Update Badge
     this.badgeChomskyType.textContent = this.classification.typeName;
     this.badgeChomskyType.className = `tier-badge badge-type${this.classification.type}`;
 
@@ -318,18 +293,13 @@ class ChomskyApp {
     });
   }
 
-  /**
-   * VISUALLY CLEARS THE TREE and resets engine without resetting the page or wiping rules
-   */
   clearTree() {
     this.pauseSearch();
 
-    // Completely clear visualizer canvas
     this.visualizer.clear();
     this.engine.reset();
     this.isInitialized = false;
 
-    // Reset metrics to 0
     this.metricVisited.textContent = '0';
     this.metricQueue.textContent = '0';
     this.metricDepth.textContent = '0';
@@ -337,7 +307,6 @@ class ChomskyApp {
     this.statusIndicator.className = 'status-badge status-idle';
     this.statusIndicator.textContent = 'IDLE';
 
-    // Clear bottom panels
     this.tracerContainer.innerHTML = '<div style="color: #64748b; font-style: italic; padding: 6px;">Tree cleared. Click Recognize or Step to begin.</div>';
     this.queueContainer.innerHTML = '<div style="color: #64748b; font-style: italic; padding: 6px;">Queue cleared.</div>';
     if (this.nodeInspectorContainer) {
@@ -345,9 +314,6 @@ class ChomskyApp {
     }
   }
 
-  /**
-   * Ensure search engine is initialized with current grammar and target
-   */
   ensureInitialized() {
     if (!this.isInitialized || this.engine.status === EngineStatus.SUCCESS || this.engine.status === EngineStatus.FAILURE) {
       this.syncSearchConfig();
@@ -357,7 +323,6 @@ class ChomskyApp {
       this.engine.init(grammar, target, false);
       this.isInitialized = true;
 
-      // Render root node
       this.visualizer.renderRealTime(this.engine.nodesMap, this.engine.rootNode);
       this.renderMetrics(this.engine.getMetrics());
       this.renderQueueList();
@@ -366,9 +331,6 @@ class ChomskyApp {
     }
   }
 
-  /**
-   * REAL-TIME DERIVATION: Steps continuously with visual updates at Step Delay speed!
-   */
   startRealtimeSearch() {
     if (this.isSearching) {
       this.pauseSearch();
@@ -389,7 +351,6 @@ class ChomskyApp {
 
       const res = this.engine.step(true);
 
-      // Real-time incremental tree update
       this.visualizer.renderRealTime(this.engine.nodesMap, this.engine.rootNode, res.targetNode);
       this.renderMetrics(this.engine.getMetrics());
       this.renderQueueList();
@@ -413,11 +374,9 @@ class ChomskyApp {
         return;
       }
 
-      // Schedule next tick using current Step Delay slider speed
       this.searchTimer = setTimeout(tick, this.autoPlaySpeedMs);
     };
 
-    // Execute first tick
     this.searchTimer = setTimeout(tick, this.autoPlaySpeedMs);
   }
 
