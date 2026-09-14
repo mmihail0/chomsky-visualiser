@@ -1,8 +1,3 @@
-/**
- * Chomsky Grammar & Semi-Thue System - BFS Derivation Engine (Optimized)
- * File: js/engine.js
- */
-
 export const EngineStatus = {
   IDLE: 'IDLE',
   SEARCHING: 'SEARCHING',
@@ -25,7 +20,6 @@ export class Deque {
     if (this.head >= this.elements.length) return undefined;
     const item = this.elements[this.head];
     this.head++;
-    // Periodically clean up memory when half consumed
     if (this.head > 300 && this.head > (this.elements.length / 2)) {
       this.elements = this.elements.slice(this.head);
       this.head = 0;
@@ -58,14 +52,13 @@ export class BFSDerivationEngine {
     this.maxVisitedNodes = options.maxVisitedNodes ?? 1000;
     this.enableLengthPruning = options.enableLengthPruning ?? true;
 
-    // Search state
     this.status = EngineStatus.IDLE;
     this.failureReason = null;
     this.grammar = null;
     this.targetString = '';
     this.queue = new Deque();
     this.visited = new Set();
-    this.nodesMap = new Map(); // id -> node
+    this.nodesMap = new Map();
     this.nodeCounter = 0;
     this.rootNode = null;
     this.targetNode = null;
@@ -73,11 +66,9 @@ export class BFSDerivationEngine {
     this.elapsedTime = 0;
     this.isMonotonic = false;
 
-    // Async runner control
     this.timerId = null;
     this.isRunningAsync = false;
 
-    // Listeners
     this.onStateChange = null;
     this.onMetricsChange = null;
     this.onTreeUpdate = null;
@@ -89,9 +80,6 @@ export class BFSDerivationEngine {
     if (options.enableLengthPruning !== undefined) this.enableLengthPruning = Boolean(options.enableLengthPruning);
   }
 
-  /**
-   * Initializes a new search run with given grammar and target
-   */
   init(grammar, targetString, notify = true) {
     this.reset();
 
@@ -163,10 +151,6 @@ export class BFSDerivationEngine {
     this.elapsedTime = 0;
   }
 
-  /**
-   * Executes a single BFS step.
-   * When notify=false (e.g. during batch run), UI updates are suppressed for speed.
-   */
   step(notify = true) {
     if (this.status === EngineStatus.SUCCESS || this.status === EngineStatus.FAILURE) {
       return { done: true, success: this.status === EngineStatus.SUCCESS };
@@ -186,7 +170,6 @@ export class BFSDerivationEngine {
     const currentNode = this.queue.shift();
     const newChildren = [];
 
-    // Check if target reached already (e.g. from root)
     if (currentNode.currentString === this.targetString) {
       this.status = EngineStatus.SUCCESS;
       this.targetNode = currentNode;
@@ -194,7 +177,6 @@ export class BFSDerivationEngine {
       return { done: true, success: true, targetNode: currentNode };
     }
 
-    // Check max depth pruning for this node's expansion
     if (currentNode.depth >= this.maxDepth) {
       currentNode.isPruned = true;
       currentNode.pruneReason = `Depth limit (${this.maxDepth}) reached`;
@@ -202,7 +184,6 @@ export class BFSDerivationEngine {
       return { done: false, success: false, nodeProcessed: currentNode, newNodes: [] };
     }
 
-    // Matching logic:
     const str = currentNode.currentString;
     const derivedCandidates = [];
 
@@ -212,7 +193,6 @@ export class BFSDerivationEngine {
 
       if (!lhs || lhs.length === 0) continue;
 
-      // Find ALL overlapping occurrences
       let matchIdx = str.indexOf(lhs, 0);
       while (matchIdx !== -1) {
         const newStr = str.substring(0, matchIdx) + rhs + str.substring(matchIdx + lhs.length);
@@ -230,7 +210,6 @@ export class BFSDerivationEngine {
       }
     }
 
-    // Process candidate child nodes
     for (const cand of derivedCandidates) {
       if (this.nodesMap.size >= this.maxVisitedNodes) {
         this.status = EngineStatus.FAILURE;
@@ -246,13 +225,11 @@ export class BFSDerivationEngine {
       let isPruned = false;
       let pruneReason = null;
 
-      // Monotonic length pruning
       if (this.enableLengthPruning && this.isMonotonic && cand.newString.length > this.targetString.length) {
         isPruned = true;
         pruneReason = `Pruned: Length (${cand.newString.length}) > Target (${this.targetString.length})`;
       }
 
-      // Visited cycle check
       const alreadyVisited = this.visited.has(cand.newString);
       if (alreadyVisited && !isTarget) {
         isPruned = true;
@@ -319,10 +296,6 @@ export class BFSDerivationEngine {
     };
   }
 
-  /**
-   * Run the search asynchronously in chunks without locking the UI.
-   * Tree updates are deferred until finished to prevent SVG thrashing.
-   */
   run(onProgress = null, chunkSize = 40) {
     if (this.status === EngineStatus.SUCCESS || this.status === EngineStatus.FAILURE) {
       return Promise.resolve(this.getResult());
@@ -342,7 +315,6 @@ export class BFSDerivationEngine {
 
         let iterations = 0;
         while (iterations < chunkSize && this.isRunningAsync) {
-          // Do NOT trigger heavy tree rendering during chunk loop!
           const res = this.step(false);
           iterations++;
 
@@ -360,7 +332,6 @@ export class BFSDerivationEngine {
           if (onProgress) onProgress(this.getMetrics());
         }
 
-        // Yield to browser event loop
         this.timerId = setTimeout(executeChunk, 0);
       };
 
