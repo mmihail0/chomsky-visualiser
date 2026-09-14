@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chomsky Grammar & Semi-Thue System Interactive Visualizer</title>
+  <meta name="description" content="Visual playground for formal grammars (Chomsky Hierarchy Type 0–3) and Semi-Thue string rewriting systems with BFS derivation tree and Windows 95 retro aesthetic.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Main Application Window (Windows 95 Shell) -->
+  <div id="app-window" class="bevel-outset">
+    
+    <!-- Titlebar -->
+    <div class="win-titlebar">
+      <div class="titlebar-left">
+        <span class="titlebar-icon">📜</span>
+        <span>Chomsky Grammar &amp; Semi-Thue System Visualizer - [Workspace 1]</span>
+      </div>
+      <div class="titlebar-controls">
+        <button class="titlebar-btn" title="Minimize">_</button>
+        <button class="titlebar-btn" title="Maximize">□</button>
+        <button class="titlebar-btn" title="Close">✕</button>
+      </div>
+    </div>
+
+    <!-- Menubar -->
+    <div class="win-menubar">
+      <span class="menu-item" onclick="document.getElementById('select-presets').focus();">File</span>
+      <span class="menu-item" onclick="document.getElementById('select-presets').focus();">Presets</span>
+      <span class="menu-item" onclick="window.app?.switchTab('visualizer');">Visualizer</span>
+      <span class="menu-item" onclick="window.app?.switchTab('theory');">Theory Guide</span>
+      <span class="menu-item" onclick="window.app?.showGrammarClassificationModal();">Diagnostics</span>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="win-tabs-bar">
+      <div id="tab-visualizer" class="win-tab active">
+        <span>🖥️ Interactive Visualizer</span>
+      </div>
+      <div id="tab-theory" class="win-tab">
+        <span>📖 Theory &amp; Reference Guide</span>
+      </div>
+    </div>
+
+    <!-- Tab Content Wrapper -->
+    <div class="tab-content-wrapper bevel-inset">
+
+      <!-- ===================================================================
+           TAB 1: INTERACTIVE VISUALIZER
+           =================================================================== -->
+      <div id="panel-visualizer" class="tab-panel active">
+        <div class="visualizer-dashboard">
+          
+          <!-- LEFT SIDEBAR: GRAMMAR CONTROLS -->
+          <div class="control-sidebar">
+
+            <!-- Presets Group -->
+            <fieldset class="win-groupbox">
+              <legend class="win-groupbox-legend">Presets Library</legend>
+              <select id="select-presets" class="form-select bevel-inset"></select>
+            </fieldset>
+
+            <!-- Grammar Configuration Group -->
+            <fieldset class="win-groupbox">
+              <legend class="win-groupbox-legend">Grammar Configuration</legend>
+
+              <!-- Chomsky Type Classification Badge -->
+              <div class="chomsky-badge-container bevel-sunken-panel">
+                <span style="font-weight: bold; font-size: 11px;">Hierarchy Tier:</span>
+                <span id="chomsky-badge" class="chomsky-badge badge-type2">Type-2 (Context-Free)</span>
+                <button id="btn-badge-details" class="win-btn" title="View classification details and diagnostics" style="padding: 2px 6px; font-size: 10px;">?</button>
+              </div>
+
+              <!-- Start Symbol Input -->
+              <div class="form-row">
+                <label class="form-label" for="input-start-symbol">Start Symbol (S₀):</label>
+                <input id="input-start-symbol" type="text" class="form-input bevel-inset" value="S" placeholder="e.g. S" spellcheck="false">
+              </div>
+
+              <!-- Target String Input -->
+              <div class="form-row">
+                <label class="form-label" for="input-target-string">Target String (w):</label>
+                <input id="input-target-string" type="text" class="form-input bevel-inset" value="aabb" placeholder="e.g. aabb" spellcheck="false">
+              </div>
+
+              <!-- Production Rules Grid -->
+              <div style="margin-top: 6px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-weight: bold; font-size: 11px;">Production Rules (LHS → RHS):</span>
+                <button id="btn-insert-epsilon" class="win-btn" style="padding: 1px 6px; font-size: 10px;" title="Insert ε (empty string)">+ ε</button>
+              </div>
+
+              <div class="rules-table-container bevel-inset">
+                <table class="rules-table">
+                  <thead>
+                    <tr>
+                      <th>LHS</th>
+                      <th style="text-align: center;">→</th>
+                      <th>RHS</th>
+                      <th style="text-align: center;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="rules-tbody">
+                    <!-- Injected dynamically by JS -->
+                  </tbody>
+                </table>
+              </div>
+
+              <div style="display: flex; gap: 6px; margin-top: 4px;">
+                <button id="btn-add-rule" class="win-btn" style="flex: 1;">+ Add Rule</button>
+                <button id="btn-clear-rules" class="win-btn" style="width: 80px;">Clear</button>
+              </div>
+            </fieldset>
+
+            <!-- Search Parameters Group -->
+            <fieldset class="win-groupbox">
+              <legend class="win-groupbox-legend">Search &amp; Pruning Parameters</legend>
+              <div class="form-row">
+                <label class="form-label" for="input-max-depth" style="width: 120px;">Max BFS Depth:</label>
+                <input id="input-max-depth" type="number" class="form-input bevel-inset" value="15" min="1" max="100">
+              </div>
+              <div class="form-row">
+                <label class="form-label" for="input-max-nodes" style="width: 120px;">Max Visited Nodes:</label>
+                <input id="input-max-nodes" type="number" class="form-input bevel-inset" value="1000" min="50" max="5000" step="50">
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px; margin-top: 4px;">
+                <input type="checkbox" id="check-length-pruning" checked>
+                <label for="check-length-pruning" style="cursor: pointer; font-size: 11px;">
+                  <strong>Monotonic Length Pruning</strong> (|L| ≤ |R|)
+                </label>
+              </div>
+            </fieldset>
+
+            <!-- Execution Action Controls -->
+            <fieldset class="win-groupbox">
+              <legend class="win-groupbox-legend">Execution Engine</legend>
+              <div class="execution-controls-grid">
+                <button id="btn-recognize" class="win-btn btn-primary">▶ Recognize</button>
+                <button id="btn-step" class="win-btn">⏭ Step Forward</button>
+                <button id="btn-autoplay" class="win-btn">⏯ Auto-Play</button>
+                <button id="btn-pause" class="win-btn">⏸ Pause</button>
+              </div>
+              <div style="margin-top: 6px;">
+                <button id="btn-reset" class="win-btn" style="width: 100%;">🔄 Reset Engine</button>
+              </div>
+
+              <!-- Speed Slider -->
+              <div class="slider-container">
+                <span style="font-size: 10px; font-weight: bold; width: 65px;">Step Delay:</span>
+                <input id="slider-speed" type="range" min="30" max="1000" step="20" value="250">
+                <span id="speed-display" style="font-family: var(--font-mono); font-size: 11px; width: 45px; text-align: right;">250ms</span>
+              </div>
+            </fieldset>
+
+          </div>
+
+          <!-- MAIN WORKSPACE: METRICS, CANVAS & TRACER -->
+          <div class="main-workspace">
+
+            <!-- Real-Time Metrics Bar -->
+            <div class="metrics-bar bevel-outset">
+              <div class="metric-item">
+                <span class="metric-label">Status:</span>
+                <span id="status-indicator" class="status-indicator status-idle">IDLE</span>
+              </div>
+              <div class="metric-item">
+                <span class="metric-label">Visited States:</span>
+                <span id="metric-visited" class="metric-value bevel-inset">1</span>
+              </div>
+              <div class="metric-item">
+                <span class="metric-label">Queue Size:</span>
+                <span id="metric-queue" class="metric-value bevel-inset">1</span>
+              </div>
+              <div class="metric-item">
+                <span class="metric-label">Current Depth:</span>
+                <span id="metric-depth" class="metric-value bevel-inset">0</span>
+              </div>
+              <div class="metric-item">
+                <span class="metric-label">Elapsed Time:</span>
+                <span id="metric-time" class="metric-value bevel-inset">0 ms</span>
+              </div>
+            </div>
+
+            <!-- Derivation Tree Canvas Area -->
+            <div class="canvas-wrapper bevel-inset">
+              <div class="canvas-toolbar">
+                <div class="canvas-toolbar-group">
+                  <span style="font-weight: bold; font-size: 11px;">Derivation Tree (BFS Graph):</span>
+                  <button id="btn-zoom-in" class="win-btn" style="padding: 1px 8px;" title="Zoom In">+</button>
+                  <button id="btn-zoom-out" class="win-btn" style="padding: 1px 8px;" title="Zoom Out">-</button>
+                  <button id="btn-zoom-reset" class="win-btn" style="padding: 1px 8px;" title="Reset Zoom">1:1</button>
+                  <button id="btn-zoom-fit" class="win-btn" style="padding: 1px 8px;" title="Fit Tree to View">[ Fit ]</button>
+                </div>
+                <div class="canvas-toolbar-group" style="font-size: 10px; gap: 8px;">
+                  <span><span style="display:inline-block;width:10px;height:10px;background:#ffffff;border:1.5px solid #000080;vertical-align:middle;margin-right:2px;"></span>Start</span>
+                  <span><span style="display:inline-block;width:10px;height:10px;background:#ffffff;border:1.5px solid #000;vertical-align:middle;margin-right:2px;"></span>Normal</span>
+                  <span><span style="display:inline-block;width:10px;height:10px;background:#e6ffe6;border:2px solid #008000;vertical-align:middle;margin-right:2px;"></span>Target Match</span>
+                  <span><span style="display:inline-block;width:10px;height:10px;background:#f0f0f0;border:1px dashed #808080;vertical-align:middle;margin-right:2px;"></span>Pruned</span>
+                </div>
+              </div>
+              <div id="tree-canvas" class="tree-canvas-area"></div>
+            </div>
+
+            <!-- Bottom Split Panels: Tracer, Queue Explorer, Node Inspector -->
+            <div class="bottom-panels-container">
+              
+              <!-- Derivation Path Tracer -->
+              <div class="tracer-panel bevel-outset">
+                <div class="panel-header">
+                  <span>📜 Derivation Path Tracer</span>
+                  <span style="font-size: 10px; font-weight: normal;">(Sequence from Root to Target/Selected)</span>
+                </div>
+                <div id="tracer-container" class="panel-body-scroll bevel-inset">
+                  <!-- Steps injected dynamically -->
+                </div>
+              </div>
+
+              <!-- State Queue Explorer -->
+              <div class="queue-panel bevel-outset" style="flex: 0.9;">
+                <div class="panel-header">
+                  <span>📥 State Queue Explorer</span>
+                  <span style="font-size: 10px; font-weight: normal;">(Next BFS Expansions)</span>
+                </div>
+                <div id="queue-container" class="panel-body-scroll bevel-inset">
+                  <!-- Queue items injected dynamically -->
+                </div>
+              </div>
+
+              <!-- Selected Node Inspector -->
+              <div class="queue-panel bevel-outset" style="flex: 0.8;">
+                <div class="panel-header">
+                  <span>🔍 Selected Node Inspector</span>
+                </div>
+                <div id="node-inspector-container" class="panel-body-scroll bevel-inset">
+                  <!-- Node details injected dynamically -->
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+
+      <!-- ===================================================================
+           TAB 2: THEORY & REFERENCE GUIDE
+           =================================================================== -->
+      <div id="panel-theory" class="tab-panel">
+        <div class="theory-scroll-container">
+          
+          <h1>Formal Grammars, Chomsky Hierarchy &amp; Semi-Thue Rewriting Systems</h1>
+          <p>
+            This interactive reference guide outlines the mathematical foundations of formal grammars, generative rewriting rules, 
+            the Chomsky Hierarchy (Types 0 through 3), and non-deterministic search algorithms used for parsing and string recognition.
+          </p>
+
+          <!-- VENN DIAGRAM INCLUSION -->
+          <h2>1. The Chomsky Hierarchy (Language Inclusion: L₃ ⊂ L₂ ⊂ L₁ ⊂ L₀)</h2>
+          <p>
+            Introduced by Noam Chomsky in 1956, formal grammars are classified into four hierarchical tiers based on the strictness of constraints 
+            imposed on their production rules. Every tier strictly contains the languages generated by the tier below it:
+          </p>
+
+          <div class="venn-container bevel-inset">
+            <svg width="680" height="240" viewBox="0 0 680 240" style="display: block; max-width: 100%;">
+              <!-- Type 0 -->
+              <rect x="10" y="10" width="660" height="220" fill="#f8e8e8" stroke="#800000" stroke-width="2"/>
+              <text x="25" y="32" font-family="MS Sans Serif, Tahoma" font-size="12" font-weight="bold" fill="#800000">Type-0: Recursively Enumerable / Unrestricted (Turing Machine)</text>
+              
+              <!-- Type 1 -->
+              <rect x="30" y="45" width="620" height="170" fill="#fff3e0" stroke="#804000" stroke-width="2"/>
+              <text x="45" y="67" font-family="MS Sans Serif, Tahoma" font-size="12" font-weight="bold" fill="#804000">Type-1: Context-Sensitive / Monotonic (Linear Bounded Automaton)</text>
+              
+              <!-- Type 2 -->
+              <rect x="50" y="80" width="580" height="120" fill="#e8f0fe" stroke="#000080" stroke-width="2"/>
+              <text x="65" y="102" font-family="MS Sans Serif, Tahoma" font-size="12" font-weight="bold" fill="#000080">Type-2: Context-Free (Pushdown Automaton)</text>
+              
+              <!-- Type 3 -->
+              <rect x="70" y="115" width="540" height="70" fill="#e6ffe6" stroke="#008000" stroke-width="2"/>
+              <text x="85" y="137" font-family="MS Sans Serif, Tahoma" font-size="12" font-weight="bold" fill="#008000">Type-3: Regular Grammars (Finite State Automaton / DFA / NFA)</text>
+              <text x="85" y="160" font-family="Courier New, monospace" font-size="11" fill="#333333">Rules: A → aB | a | ε   (Linear pattern matching, O(n) parsing)</text>
+            </svg>
+          </div>
+
+          <!-- COMPARISON TABLE -->
+          <table class="theory-table bevel-outset">
+            <thead>
+              <tr>
+                <th>Tier</th>
+                <th>Grammar Type</th>
+                <th>Rule Production Form</th>
+                <th>Recognizing Automaton</th>
+                <th>Parsing Complexity</th>
+                <th>Word Problem</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Type-3</strong></td>
+                <td>Regular</td>
+                <td><span class="theory-code">A → wB</span> or <span class="theory-code">A → w</span> (Right-Linear)<br><span class="theory-code">A → Bw</span> or <span class="theory-code">A → w</span> (Left-Linear)</td>
+                <td>Finite State Automaton (DFA / NFA)</td>
+                <td>Linear: <span class="theory-code">O(n)</span></td>
+                <td>Decidable</td>
+              </tr>
+              <tr>
+                <td><strong>Type-2</strong></td>
+                <td>Context-Free (CFG)</td>
+                <td><span class="theory-code">A → γ</span> where <span class="theory-code">A ∈ V_N</span>, <span class="theory-code">γ ∈ (V_N ∪ Σ)*</span></td>
+                <td>Pushdown Automaton (PDA)</td>
+                <td>Polynomial: <span class="theory-code">O(n³)</span> (CYK/Earley)</td>
+                <td>Decidable</td>
+              </tr>
+              <tr>
+                <td><strong>Type-1</strong></td>
+                <td>Context-Sensitive (CSG)</td>
+                <td><span class="theory-code">α → β</span> with <span class="theory-code">|α| ≤ |β|</span> (Non-contracting)</td>
+                <td>Linear Bounded Automaton (LBA)</td>
+                <td>PSPACE-complete</td>
+                <td>Decidable</td>
+              </tr>
+              <tr>
+                <td><strong>Type-0</strong></td>
+                <td>Unrestricted / Semi-Thue</td>
+                <td><span class="theory-code">α → β</span> (Arbitrary rewriting, <span class="theory-code">α ≠ ε</span>)</td>
+                <td>Turing Machine</td>
+                <td>Undecidable</td>
+                <td>Recursively Enumerable</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- DETAILED TYPE BREAKDOWNS -->
+          <h2>2. Detailed Tier Specifications &amp; Interactive Presets</h2>
+
+          <div class="theory-card bevel-outset">
+            <h3 style="color: #008000;">Type-3: Regular Grammars</h3>
+            <p>
+              Regular grammars generate regular languages. Every production rule must be strictly <em>Right-Linear</em> (a non-terminal appears only at the extreme right of RHS) 
+              or <em>Left-Linear</em> (a non-terminal appears only at the extreme left of RHS).
+            </p>
+            <p><strong>Canonical Example:</strong> Alternating tokens <span class="theory-code">(ab)⁺</span>:</p>
+            <p><span class="theory-code">S → aA</span>, <span class="theory-code">A → bS</span>, <span class="theory-code">A → b</span></p>
+            <button class="win-btn" data-load-preset="regular_ab">▶ Load Alternating (ab)⁺ into Visualizer</button>
+          </div>
+
+          <div class="theory-card bevel-outset">
+            <h3 style="color: #000080;">Type-2: Context-Free Grammars (CFG)</h3>
+            <p>
+              In CFGs, the Left-Hand Side (LHS) of every production rule consists of a single isolated non-terminal symbol (<span class="theory-code">|LHS| = 1</span>). 
+              The replacement can take place regardless of the symbols surrounding it (hence "context-free").
+            </p>
+            <p><strong>Canonical Example 1:</strong> Non-regular matching language <span class="theory-code">{ aⁿbⁿ | n ≥ 0 }</span>:</p>
+            <p><span class="theory-code">S → aSb | ε</span></p>
+            <button class="win-btn" data-load-preset="anbn">▶ Load aⁿbⁿ into Visualizer</button>
+
+            <p style="margin-top: 10px;"><strong>Canonical Example 2:</strong> Dyck Language (Balanced Parentheses):</p>
+            <p><span class="theory-code">S → (S)S | ε</span></p>
+            <button class="win-btn" data-load-preset="balanced_parens">▶ Load Balanced Parentheses into Visualizer</button>
+          </div>
+
+          <div class="theory-card bevel-outset">
+            <h3 style="color: #804000;">Type-1: Context-Sensitive Grammars (CSG)</h3>
+            <p>
+              In Context-Sensitive Grammars (monotonic/non-contracting formulation), for every rule <span class="theory-code">α → β</span>, the length of the RHS must be greater than or equal to the LHS (<span class="theory-code">|α| ≤ |β|</span>).
+              This guarantees that during derivation, strings never shrink (except for the special case of an axiom deriving empty string <span class="theory-code">S → ε</span> where <span class="theory-code">S</span> does not appear on any RHS).
+            </p>
+            <p><strong>Canonical Example:</strong> The three-count non-context-free language <span class="theory-code">{ aⁿbⁿcⁿ | n ≥ 1 }</span>:</p>
+            <p><span class="theory-code">S → aSBC | aBC</span>, <span class="theory-code">CB → BC</span>, <span class="theory-code">aB → ab</span>, <span class="theory-code">bB → bb</span>, <span class="theory-code">bC → bc</span>, <span class="theory-code">cC → cc</span></p>
+            <button class="win-btn" data-load-preset="anbncn">▶ Load aⁿbⁿcⁿ into Visualizer</button>
+          </div>
+
+          <div class="theory-card bevel-outset">
+            <h3 style="color: #800000;">Type-0: Semi-Thue Systems &amp; Unrestricted Grammars</h3>
+            <p>
+              Axel Thue introduced Semi-Thue systems in 1914 as a formal framework for string rewriting. A Semi-Thue system consists of a finite alphabet <span class="theory-code">Σ</span> 
+              and a set of directed replacement rules <span class="theory-code">u → v</span>. Unlike formal grammars, Semi-Thue systems make no fundamental distinction between terminals and non-terminals.
+            </p>
+            <p>
+              Type-0 systems are computationally <strong>Turing-complete</strong>. Any algorithm computable by a Turing Machine can be simulated by string replacements in a Semi-Thue system.
+            </p>
+            <p><strong>Canonical Example:</strong> Ripple-Carry Binary Incrementer (<span class="theory-code">>1011+</span> → <span class="theory-code">1100</span>):</p>
+            <p><span class="theory-code">0+ → 1</span>, <span class="theory-code">1+ → +0</span>, <span class="theory-code">>+ → >1</span>, <span class="theory-code">> → ε</span></p>
+            <button class="win-btn" data-load-preset="semi_thue_increment">▶ Load Binary Incrementer into Visualizer</button>
+          </div>
+
+          <!-- SEARCH THEORY & UNDECIDABILITY -->
+          <h2>3. Algorithm &amp; Search Theory</h2>
+
+          <h3>Breadth-First Search (BFS) vs. Depth-First Search (DFS)</h3>
+          <p>
+            When searching for a derivation of target string <span class="theory-code">w</span> from start symbol <span class="theory-code">S</span>:
+          </p>
+          <ul>
+            <li>
+              <strong>Why BFS is required:</strong> BFS explores the search tree level by level. Because each step represents one rule substitution, 
+              BFS is guaranteed to discover the <em>shortest possible derivation sequence</em> (minimal number of steps).
+            </li>
+            <li>
+              <strong>Why DFS fails in rewriting systems:</strong> Even simple rules such as <span class="theory-code">S → aSb</span> or <span class="theory-code">A → B, B → A</span> create infinite paths. 
+              DFS can dive infinitely deep down a non-terminating branch and fail to find a valid finite derivation that exists just one branch over.
+            </li>
+          </ul>
+
+          <h3>The Undecidability Problem &amp; Safety Limits</h3>
+          <p>
+            For general Type-0 grammars and Semi-Thue systems, the <em>Word Problem</em> (determining whether a given string <span class="theory-code">w</span> can be derived from start axiom <span class="theory-code">S</span>) 
+            is <strong>undecidable</strong>. This is directly related to Alan Turing's <em>Halting Problem</em>.
+          </p>
+          <p>
+            Because arbitrary rules can contract string lengths (e.g. <span class="theory-code">abc → a</span>), the search space can expand and contract indefinitely. 
+            No algorithm can determine in finite time whether an arbitrary Type-0 derivation will terminate or loop forever. 
+            For this reason, production visualizers implement strict <strong>Max Search Depth</strong> and <strong>Max Visited Nodes</strong> safety caps.
+          </p>
+
+          <h3>Monotonic Length Pruning</h3>
+          <p>
+            In Type-1 (Context-Sensitive), Type-2 (without ε-rules), and Type-3 grammars where every production rule satisfies <span class="theory-code">|LHS| ≤ |RHS|</span>, 
+            the length of the derived string is monotonically non-decreasing:
+          </p>
+          <div style="background: #f0f0f0; padding: 8px; border-left: 3px solid #000080; font-family: var(--font-mono); margin: 6px 0;">
+            |S₀| ≤ |S₁| ≤ |S₂| ≤ ... ≤ |S_k|
+          </div>
+          <p>
+            Therefore, if at any point <span class="theory-code">|S_current| > |w_target|</span>, that branch can <em>never</em> shrink back down to match <span class="theory-code">w_target</span>. 
+            The visualizer's BFS engine automatically detects this condition and immediately prunes such candidate nodes, cutting exponential branching by up to 90%!
+          </p>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Windows 95 Status Bar -->
+    <div class="win-statusbar">
+      <div id="status-msg" class="status-panel bevel-inset status-panel-flex">
+        Ready. Select a preset or configure rules.
+      </div>
+      <div id="status-grammar-type" class="status-panel bevel-inset status-panel-fixed">
+        Type-2 (Context-Free)
+      </div>
+      <div class="status-panel bevel-inset" style="width: 100px; text-align: center;">
+        BFS Non-Det
+      </div>
+      <div id="status-clock" class="status-panel bevel-inset status-panel-clock">
+        12:00 PM
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Windows 95 Modal Dialog for Classification Details -->
+  <div id="modal-overlay" class="modal-overlay" style="display: none;">
+    <div class="modal-window bevel-outset">
+      <div class="win-titlebar">
+        <div class="titlebar-left">
+          <span>ℹ️</span>
+          <span id="modal-title">Grammar Diagnostics</span>
+        </div>
+        <div class="titlebar-controls">
+          <button id="btn-modal-close" class="titlebar-btn">✕</button>
+        </div>
+      </div>
+      <div id="modal-content" class="modal-body bevel-sunken-panel">
+        <!-- Injected dynamically -->
+      </div>
+      <div class="modal-footer">
+        <button id="btn-modal-ok" class="win-btn" style="width: 75px;">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Scripts -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
