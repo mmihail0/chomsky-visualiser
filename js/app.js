@@ -37,7 +37,6 @@ class ChomskyApp {
     this.btnInsertEpsilon = document.getElementById('btn-insert-epsilon');
     this.badgeChomskyType = document.getElementById('chomsky-badge');
     this.btnBadgeDetails = document.getElementById('btn-badge-details');
-    this.btnQuickDiagnostics = document.getElementById('btn-quick-diagnostics');
 
     this.inputMaxDepth = document.getElementById('input-max-depth');
     this.inputMaxNodes = document.getElementById('input-max-nodes');
@@ -156,9 +155,6 @@ class ChomskyApp {
     this.btnZoomFit.addEventListener('click', () => this.visualizer.fitToScreen());
 
     this.btnBadgeDetails.addEventListener('click', () => this.showGrammarClassificationModal());
-    if (this.btnQuickDiagnostics) {
-      this.btnQuickDiagnostics.addEventListener('click', () => this.showGrammarClassificationModal());
-    }
 
     this.btnModalClose.addEventListener('click', () => this.closeModal());
     this.btnModalOk.addEventListener('click', () => this.closeModal());
@@ -307,7 +303,7 @@ class ChomskyApp {
     this.statusIndicator.className = 'status-badge status-idle';
     this.statusIndicator.textContent = 'IDLE';
 
-    this.tracerContainer.innerHTML = '<div style="color: #64748b; font-style: italic; padding: 6px;">Tree cleared. Click Recognize or Step to begin.</div>';
+    this.tracerContainer.innerHTML = '<div style="color: #64748b; font-style: italic; padding: 6px;">Tree cleared. Click Recognise or Step to begin.</div>';
     this.queueContainer.innerHTML = '<div style="color: #64748b; font-style: italic; padding: 6px;">Queue cleared.</div>';
     if (this.nodeInspectorContainer) {
       this.nodeInspectorContainer.innerHTML = '<div style="color: #64748b; font-style: italic; padding: 6px;">No node selected.</div>';
