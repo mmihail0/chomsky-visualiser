@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chomsky Grammar & Semi-Thue System Interactive Visualizer</title>
+  <meta name="description" content="Interactive playground for formal grammars (Chomsky Hierarchy Type 0–3) and Semi-Thue string rewriting systems with BFS derivation tree.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Main Application Window -->
+  <div id="app-window">
+    
+    <!-- Titlebar Header -->
+    <div class="win-titlebar">
+      <div class="titlebar-left">
+        <span>Chomsky Grammar &amp; Semi-Thue System Visualizer</span>
+        <span class="titlebar-subtitle">| Formal Language Playground &amp; BFS Derivation Engine</span>
+      </div>
+      <div class="titlebar-actions">
+        <button id="btn-quick-diagnostics" class="btn btn-secondary" style="padding: 2px 8px; font-size: 10px;">Diagnostics</button>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="win-tabs-bar">
+      <button id="tab-visualizer" class="win-tab active">Interactive Visualizer</button>
+      <button id="tab-theory" class="win-tab">Theory &amp; Reference Guide</button>
+    </div>
+
+    <!-- Tab Content Wrapper -->
+    <div class="tab-content-wrapper">
+
+      <!-- ===================================================================
+           TAB 1: INTERACTIVE VISUALIZER
+           =================================================================== -->
+      <div id="panel-visualizer" class="tab-panel active">
+        <div class="visualizer-dashboard">
+          
+          <!-- LEFT SIDEBAR: CONTROLS & RULES -->
+          <div class="control-sidebar">
+
+            <!-- Presets Group -->
+            <div class="card-panel">
+              <div class="card-title">Presets Library</div>
+              <select id="select-presets" class="form-select"></select>
+            </div>
+
+            <!-- Grammar Configuration Group -->
+            <div class="card-panel">
+              <div class="card-title">Grammar Configuration</div>
+
+              <!-- Chomsky Tier Badge -->
+              <div class="tier-badge-container">
+                <span style="font-weight: bold; font-size: 11px;">Hierarchy Tier:</span>
+                <span id="chomsky-badge" class="tier-badge badge-type2">Type-2 (Context-Free)</span>
+                <button id="btn-badge-details" class="btn" style="padding: 1px 6px; font-size: 10px;" title="View classification details">Details</button>
+              </div>
+
+              <!-- Start Symbol Input -->
+              <div class="form-row">
+                <label class="form-label" for="input-start-symbol">Start Symbol (S0):</label>
+                <input id="input-start-symbol" type="text" class="form-input" value="S" placeholder="e.g. S" spellcheck="false">
+              </div>
+
+              <!-- Target String Input -->
+              <div class="form-row">
+                <label class="form-label" for="input-target-string">Target String (w):</label>
+                <input id="input-target-string" type="text" class="form-input" value="aabb" placeholder="e.g. aabb" spellcheck="false">
+              </div>
+
+              <!-- Production Rules Grid -->
+              <div style="margin-top: 8px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-weight: bold; font-size: 11px;">Production Rules:</span>
+                <button id="btn-insert-epsilon" class="btn" style="padding: 1px 6px; font-size: 10px;" title="Insert ε (empty string)">Insert ε</button>
+              </div>
+
+              <div class="rules-table-container">
+                <table class="rules-table">
+                  <thead>
+                    <tr>
+                      <th style="width: 38%;">LHS</th>
+                      <th style="width: 8%; text-align: center;">→</th>
+                      <th style="width: 38%;">RHS</th>
+                      <th style="width: 16%; text-align: center;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="rules-tbody">
+                    <!-- Injected dynamically by JS -->
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Reset Rules moved in between Add Rule and Clear Rules -->
+              <div style="display: flex; gap: 6px; margin-top: 6px;">
+                <button id="btn-add-rule" class="btn" style="flex: 1;">Add Rule</button>
+                <button id="btn-reset-rules" class="btn" style="flex: 1;" title="Reset rules and inputs to default preset">Reset Rules</button>
+                <button id="btn-clear-rules" class="btn" style="flex: 1;">Clear Rules</button>
+              </div>
+            </div>
+
+            <!-- Search Limits Group -->
+            <div class="card-panel">
+              <div class="card-title">Search &amp; Safety Limits</div>
+              <div class="form-row">
+                <label class="form-label" for="input-max-depth" style="width: 125px;">Max BFS Depth:</label>
+                <input id="input-max-depth" type="number" class="form-input" value="15" min="1" max="100">
+              </div>
+              <div class="form-row">
+                <label class="form-label" for="input-max-nodes" style="width: 125px;">Max Visited Nodes:</label>
+                <input id="input-max-nodes" type="number" class="form-input" value="1000" min="50" max="5000" step="50">
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px; margin-top: 4px;">
+                <input type="checkbox" id="check-length-pruning" checked>
+                <label for="check-length-pruning" style="cursor: pointer; font-size: 11px;">
+                  <strong>Length Pruning</strong> (|L| ≤ |R| monotonic)
+                </label>
+              </div>
+            </div>
+
+            <!-- Execution Action Controls -->
+            <div class="card-panel">
+              <div class="card-title">Execution Controls</div>
+              <div class="action-grid-2">
+                <button id="btn-recognize" class="btn btn-primary">Recognize</button>
+                <button id="btn-step" class="btn">Step</button>
+                <button id="btn-autoplay" class="btn">Auto-Play</button>
+                <button id="btn-pause" class="btn">Pause</button>
+              </div>
+              
+              <div style="margin-top: 6px;">
+                <button id="btn-clear-tree" class="btn" style="width: 100%;" title="Clear derivation tree and restart engine without resetting rules">Clear Tree</button>
+              </div>
+
+              <!-- Speed Slider -->
+              <div class="slider-container">
+                <span style="font-size: 11px; font-weight: bold; width: 75px;">Step Delay:</span>
+                <input id="slider-speed" type="range" min="30" max="1000" step="20" value="250">
+                <span id="speed-display" style="font-family: var(--font-mono); font-size: 11px; width: 45px; text-align: right;">250ms</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- MAIN WORKSPACE: METRICS, CANVAS & TRACER -->
+          <div class="main-workspace">
+
+            <!-- Real-Time Metrics Bar -->
+            <div class="metrics-bar">
+              <div class="metric-item">
+                <span class="metric-label">Status:</span>
+                <span id="status-indicator" class="status-badge status-idle">IDLE</span>
+              </div>
+              <div class="metric-item">
+                <span class="metric-label">Visited States:</span>
+                <span id="metric-visited" class="metric-value">0</span>
+              </div>
+              <div class="metric-item">
+                <span class="metric-label">Queue Size:</span>
+                <span id="metric-queue" class="metric-value">0</span>
+              </div>
+              <div class="metric-item">
+                <span class="metric-label">Current Depth:</span>
+                <span id="metric-depth" class="metric-value">0</span>
+              </div>
+              <div class="metric-item">
+                <span class="metric-label">Elapsed Time:</span>
+                <span id="metric-time" class="metric-value">0 ms</span>
+              </div>
+            </div>
+
+            <!-- Derivation Tree Canvas Area -->
+            <div class="canvas-wrapper">
+              <div class="canvas-toolbar">
+                <div class="canvas-toolbar-group">
+                  <span style="font-weight: bold; font-size: 11px; color: var(--color-navy);">Derivation Tree:</span>
+                  <button id="btn-zoom-in" class="btn" style="padding: 2px 8px;" title="Zoom In">Zoom +</button>
+                  <button id="btn-zoom-out" class="btn" style="padding: 2px 8px;" title="Zoom Out">Zoom -</button>
+                  <button id="btn-zoom-reset" class="btn" style="padding: 2px 8px;" title="Reset Zoom">1:1</button>
+                  <button id="btn-zoom-fit" class="btn" style="padding: 2px 8px;" title="Fit Tree to View">Fit</button>
+                </div>
+                <div class="canvas-toolbar-group" style="font-size: 11px; gap: 10px;">
+                  <span><span style="display:inline-block;width:10px;height:10px;background:#ffffff;border:1.5px solid #1f3a60;vertical-align:middle;margin-right:3px;"></span>Start</span>
+                  <span><span style="display:inline-block;width:10px;height:10px;background:#ffffff;border:1.5px solid #4a5568;vertical-align:middle;margin-right:3px;"></span>Standard</span>
+                  <span><span style="display:inline-block;width:10px;height:10px;background:#f0fff4;border:2px solid #2e7d32;vertical-align:middle;margin-right:3px;"></span>Target Match</span>
+                  <span><span style="display:inline-block;width:10px;height:10px;background:#f8fafc;border:1px dashed #a0aec0;vertical-align:middle;margin-right:3px;"></span>Pruned</span>
+                </div>
+              </div>
+              <div id="tree-canvas" class="tree-canvas-area"></div>
+            </div>
+
+            <!-- Bottom Split Panels -->
+            <div class="bottom-panels-container">
+              
+              <!-- Derivation Path Tracer -->
+              <div class="bottom-panel" style="flex: 1.4;">
+                <div class="bottom-panel-header">
+                  <span>Derivation Path Tracer</span>
+                  <span style="font-size: 10px; font-weight: normal; color: #64748b;">Sequence from Root to Target</span>
+                </div>
+                <div id="tracer-container" class="bottom-panel-body">
+                  <div style="color: #64748b; font-style: italic; padding: 6px;">Tree cleared. Click Recognize or Step to begin.</div>
+                </div>
+              </div>
+
+              <!-- State Queue Explorer -->
+              <div class="bottom-panel" style="flex: 0.9;">
+                <div class="bottom-panel-header">
+                  <span>State Queue Explorer</span>
+                  <span style="font-size: 10px; font-weight: normal; color: #64748b;">Pending BFS Nodes</span>
+                </div>
+                <div id="queue-container" class="bottom-panel-body">
+                  <div style="color: #64748b; font-style: italic; padding: 6px;">Queue is empty.</div>
+                </div>
+              </div>
+
+              <!-- Selected Node Inspector -->
+              <div class="bottom-panel" style="flex: 0.8;">
+                <div class="bottom-panel-header">
+                  <span>Node Inspector</span>
+                </div>
+                <div id="node-inspector-container" class="bottom-panel-body">
+                  <div style="color: #64748b; font-style: italic; padding: 6px;">No node selected.</div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ===================================================================
+           TAB 2: THEORY & REFERENCE GUIDE
+           =================================================================== -->
+      <div id="panel-theory" class="tab-panel">
+        <div class="theory-scroll-container">
+          
+          <h1>Formal Grammars, Chomsky Hierarchy &amp; Semi-Thue Rewriting Systems</h1>
+          <p>
+            Formal grammars provide mathematical frameworks for describing syntax and language generation. 
+            Semi-Thue systems formalize string rewriting operations that model non-deterministic computational processes.
+          </p>
+
+          <h2>1. The Chomsky Hierarchy (Language Inclusion: L3 ⊂ L2 ⊂ L1 ⊂ L0)</h2>
+          <p>
+            Introduced by Noam Chomsky in 1956, formal grammars are classified into four tiers based on production rule constraints:
+          </p>
+
+          <!-- Solid-color Venn diagram, no gradients -->
+          <div class="venn-container">
+            <svg width="680" height="230" viewBox="0 0 680 230" style="display: block; max-width: 100%;">
+              <rect x="10" y="10" width="660" height="210" fill="#fee2e2" stroke="#b91c1c" stroke-width="2"/>
+              <text x="25" y="32" font-family="Segoe UI, sans-serif" font-size="12" font-weight="bold" fill="#991b1b">Type-0: Recursively Enumerable / Unrestricted (Turing Machine)</text>
+              
+              <rect x="30" y="45" width="620" height="165" fill="#ffedd5" stroke="#c2410c" stroke-width="2"/>
+              <text x="45" y="67" font-family="Segoe UI, sans-serif" font-size="12" font-weight="bold" fill="#9a3412">Type-1: Context-Sensitive / Monotonic (Linear Bounded Automaton)</text>
+              
+              <rect x="50" y="80" width="580" height="120" fill="#dbeafe" stroke="#1d4ed8" stroke-width="2"/>
+              <text x="65" y="102" font-family="Segoe UI, sans-serif" font-size="12" font-weight="bold" fill="#1e40af">Type-2: Context-Free (Pushdown Automaton)</text>
+              
+              <rect x="70" y="115" width="540" height="75" fill="#dcfce7" stroke="#15803d" stroke-width="2"/>
+              <text x="85" y="137" font-family="Segoe UI, sans-serif" font-size="12" font-weight="bold" fill="#166534">Type-3: Regular Grammars (Finite State Automaton / DFA / NFA)</text>
+              <text x="85" y="160" font-family="Courier New, monospace" font-size="11" fill="#334155">Rules: A → aB | a | ε   (Linear pattern matching, O(n) recognition)</text>
+            </svg>
+          </div>
+
+          <table class="theory-table">
+            <thead>
+              <tr>
+                <th>Tier</th>
+                <th>Grammar Type</th>
+                <th>Production Rule Form</th>
+                <th>Recognizing Automaton</th>
+                <th>Parsing Complexity</th>
+                <th>Word Problem</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Type-3</strong></td>
+                <td>Regular</td>
+                <td><span class="theory-code">A → wB</span> or <span class="theory-code">A → w</span> (Right-Linear)<br><span class="theory-code">A → Bw</span> or <span class="theory-code">A → w</span> (Left-Linear)</td>
+                <td>Finite State Automaton (DFA / NFA)</td>
+                <td>Linear: <span class="theory-code">O(n)</span></td>
+                <td>Decidable</td>
+              </tr>
+              <tr>
+                <td><strong>Type-2</strong></td>
+                <td>Context-Free (CFG)</td>
+                <td><span class="theory-code">A → γ</span> where <span class="theory-code">A ∈ VN</span>, <span class="theory-code">γ ∈ (VN ∪ Σ)*</span></td>
+                <td>Pushdown Automaton (PDA)</td>
+                <td>Polynomial: <span class="theory-code">O(n³)</span> (CYK/Earley)</td>
+                <td>Decidable</td>
+              </tr>
+              <tr>
+                <td><strong>Type-1</strong></td>
+                <td>Context-Sensitive (CSG)</td>
+                <td><span class="theory-code">α → β</span> with <span class="theory-code">|α| ≤ |β|</span> (Non-contracting)</td>
+                <td>Linear Bounded Automaton (LBA)</td>
+                <td>PSPACE-complete</td>
+                <td>Decidable</td>
+              </tr>
+              <tr>
+                <td><strong>Type-0</strong></td>
+                <td>Unrestricted / Semi-Thue</td>
+                <td><span class="theory-code">α → β</span> (Arbitrary rewriting, <span class="theory-code">α ≠ ε</span>)</td>
+                <td>Turing Machine</td>
+                <td>Undecidable</td>
+                <td>Recursively Enumerable</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h2>2. Detailed Tier Specifications &amp; Interactive Presets</h2>
+
+          <div class="theory-card">
+            <h3 style="color: #166534;">Type-3: Regular Grammars</h3>
+            <p>
+              Regular grammars produce languages recognized by finite state automata. 
+              Non-terminals can appear only at the extreme right (Right-Linear) or extreme left (Left-Linear) of the production rule.
+            </p>
+            <p><strong>Example:</strong> Alternating tokens <span class="theory-code">(ab)+</span>:</p>
+            <p><span class="theory-code">S → aA</span>, <span class="theory-code">A → bS</span>, <span class="theory-code">A → b</span></p>
+            <button class="btn btn-secondary" style="margin-top: 6px;" data-load-preset="regular_ab">Load Alternating (ab)+ into Visualizer</button>
+          </div>
+
+          <div class="theory-card">
+            <h3 style="color: #1e40af;">Type-2: Context-Free Grammars (CFG)</h3>
+            <p>
+              Every rule has a single isolated non-terminal on the LHS (<span class="theory-code">|LHS| = 1</span>).
+              Substitutions are independent of surrounding context.
+            </p>
+            <p><strong>Example 1:</strong> Balanced counting <span class="theory-code">{ aⁿbⁿ | n ≥ 0 }</span>:</p>
+            <p><span class="theory-code">S → aSb | ε</span></p>
+            <button class="btn btn-secondary" style="margin-top: 6px;" data-load-preset="anbn">Load aⁿbⁿ into Visualizer</button>
+
+            <p style="margin-top: 12px;"><strong>Example 2:</strong> Dyck Language (Balanced Parentheses):</p>
+            <p><span class="theory-code">S → (S)S | ε</span></p>
+            <button class="btn btn-secondary" style="margin-top: 6px;" data-load-preset="balanced_parens">Load Balanced Parentheses into Visualizer</button>
+          </div>
+
+          <div class="theory-card">
+            <h3 style="color: #9a3412;">Type-1: Context-Sensitive Grammars (CSG)</h3>
+            <p>
+              Rules are non-contracting: the length of the replacement must be greater than or equal to the source (<span class="theory-code">|α| ≤ |β|</span>).
+              Strings never shrink during derivation, which makes the word recognition problem decidable in PSPACE.
+            </p>
+            <p><strong>Example:</strong> Three-way balanced language <span class="theory-code">{ aⁿbⁿcⁿ | n ≥ 1 }</span>:</p>
+            <p><span class="theory-code">S → aSBC | aBC</span>, <span class="theory-code">CB → BC</span>, <span class="theory-code">aB → ab</span>, <span class="theory-code">bB → bb</span>, <span class="theory-code">bC → bc</span>, <span class="theory-code">cC → cc</span></p>
+            <button class="btn btn-secondary" style="margin-top: 6px;" data-load-preset="anbncn">Load aⁿbⁿcⁿ into Visualizer</button>
+          </div>
+
+          <div class="theory-card">
+            <h3 style="color: #991b1b;">Type-0: Semi-Thue Systems &amp; Unrestricted Grammars</h3>
+            <p>
+              Introduced by Axel Thue in 1914, Semi-Thue systems consist of an alphabet and directed substitution rules <span class="theory-code">u → v</span>.
+              Type-0 systems are computationally <strong>Turing-complete</strong>.
+            </p>
+            <p><strong>Example:</strong> Ripple-Carry Binary Incrementer (<span class="theory-code">&gt;1011+</span> → <span class="theory-code">1100</span>):</p>
+            <p><span class="theory-code">0+ → 1</span>, <span class="theory-code">1+ → +0</span>, <span class="theory-code">&gt;+ → &gt;1</span>, <span class="theory-code">&gt; → ε</span></p>
+            <button class="btn btn-secondary" style="margin-top: 6px;" data-load-preset="semi_thue_increment">Load Binary Incrementer into Visualizer</button>
+          </div>
+
+          <h2>3. Algorithm &amp; Search Theory</h2>
+
+          <h3>Breadth-First Search (BFS) vs. Depth-First Search (DFS)</h3>
+          <ul>
+            <li>
+              <strong>Why BFS is required:</strong> BFS explores states level by level. Because each step corresponds to one rule replacement, 
+              BFS is guaranteed to find the <em>shortest derivation path</em> in terms of steps.
+            </li>
+            <li>
+              <strong>Why DFS fails:</strong> Rewriting systems often contain infinite branch cycles (e.g. <span class="theory-code">S → aSb</span> or <span class="theory-code">A → B, B → A</span>). 
+              DFS can descend infinitely down an unproductive branch, missing a valid derivation.
+            </li>
+          </ul>
+
+          <h3>The Halting Problem &amp; Safety Limits</h3>
+          <p>
+            The Word Problem for general Type-0 grammars is <strong>undecidable</strong> (equivalent to the Halting Problem). 
+            Rules can expand and contract strings arbitrarily. Therefore, practical visualizers must enforce 
+            <strong>Max Search Depth</strong> and <strong>Max Visited Nodes</strong> safety limits to guarantee termination.
+          </p>
+
+          <h3>Monotonic Length Pruning</h3>
+          <p>
+            When all rules satisfy <span class="theory-code">|LHS| ≤ |RHS|</span>, derived string lengths never decrease. 
+            If a state's length exceeds the target string length, that branch can never reach the target and is safely pruned, 
+            significantly reducing search space without compromising completeness.
+          </p>
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Modal Dialog for Classification Details -->
+  <div id="modal-overlay" class="modal-overlay" style="display: none;">
+    <div class="modal-window">
+      <div class="modal-header">
+        <span id="modal-title">Grammar Diagnostics</span>
+        <button id="btn-modal-close" class="btn" style="padding: 1px 6px; font-size: 10px;">✕</button>
+      </div>
+      <div id="modal-content" class="modal-body">
+        <!-- Injected dynamically -->
+      </div>
+      <div class="modal-footer">
+        <button id="btn-modal-ok" class="btn btn-primary" style="width: 75px;">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
