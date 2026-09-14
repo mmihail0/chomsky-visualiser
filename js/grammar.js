@@ -1,8 +1,3 @@
-/**
- * Chomsky Grammar & Semi-Thue System - Grammar Model & Classification
- * File: js/grammar.js
- */
-
 export const ChomskyType = {
   TYPE_3: 'Type-3 (Regular)',
   TYPE_2: 'Type-2 (Context-Free)',
@@ -14,12 +9,10 @@ export class RuleModel {
   constructor(lhs, rhs, id = null) {
     this.id = id || 'rule_' + Math.random().toString(36).substring(2, 9);
     this.lhs = (lhs !== undefined && lhs !== null) ? String(lhs).trim() : '';
-    // Normalize epsilon representations
     const r = (rhs !== undefined && rhs !== null) ? String(rhs).trim() : '';
     this.rhs = (r === 'ε' || r === 'eps' || r === 'epsilon' || r === 'λ' || r === 'lambda') ? '' : r;
   }
 
-  /** Display representation for RHS */
   get rhsDisplay() {
     return this.rhs === '' ? 'ε' : this.rhs;
   }
@@ -35,14 +28,8 @@ export class GrammarModel {
     this.rules = rules;
   }
 
-  /**
-   * Identifies non-terminals: By standard formal language convention,
-   * uppercase ASCII characters [A-Z] are treated as non-terminals.
-   * If startSymbol contains characters, those are also non-terminals.
-   */
   getNonTerminals() {
     const nonTerminals = new Set();
-    // Any uppercase character in LHS or RHS
     for (const rule of this.rules) {
       for (const char of rule.lhs) {
         if (/[A-Z]/.test(char)) nonTerminals.add(char);
@@ -51,11 +38,9 @@ export class GrammarModel {
         if (/[A-Z]/.test(char)) nonTerminals.add(char);
       }
     }
-    // Start symbol
     for (const char of this.startSymbol) {
       if (/[A-Z]/.test(char)) nonTerminals.add(char);
     }
-    // Default fallback: if no uppercase found, all LHS symbols are non-terminals
     if (nonTerminals.size === 0 && this.rules.length > 0) {
       for (const rule of this.rules) {
         for (const char of rule.lhs) {
@@ -80,14 +65,9 @@ export class GrammarModel {
     return terminals;
   }
 
-  /**
-   * Check if grammar rules are monotonic (non-contracting, |LHS| <= |RHS|).
-   * Used for length-based search pruning.
-   */
   isLengthNonDecreasing() {
     if (this.rules.length === 0) return true;
     for (const rule of this.rules) {
-      // Epsilon productions contract length (|LHS| >= 1 > |RHS|=0)
       if (rule.rhs.length < rule.lhs.length) {
         return false;
       }
@@ -95,13 +75,6 @@ export class GrammarModel {
     return true;
   }
 
-  /**
-   * Comprehensive classification of the grammar according to Chomsky Hierarchy:
-   * - Type 3: Regular Grammar (Right-Linear or Left-Linear)
-   * - Type 2: Context-Free Grammar (A -> gamma, |A| = 1, A in V_N)
-   * - Type 1: Context-Sensitive / Monotonic (|alpha| <= |beta|, alpha contains non-terminal)
-   * - Type 0: Unrestricted / Semi-Thue (alpha -> beta, alpha contains non-terminal or general string rewriting)
-   */
   classify() {
     if (!this.rules || this.rules.length === 0) {
       return {
@@ -120,7 +93,6 @@ export class GrammarModel {
     const nonTerminals = this.getNonTerminals();
     const details = [];
 
-    // Check if valid production system: LHS cannot be empty
     for (const rule of this.rules) {
       if (!rule.lhs || rule.lhs.length === 0) {
         return {
@@ -133,8 +105,6 @@ export class GrammarModel {
       }
     }
 
-    // Step 1: Check Type 2 (Context-Free) condition:
-    // Every rule LHS must consist of exactly 1 non-terminal.
     let isContextFree = true;
     for (const rule of this.rules) {
       const isSingleNonTerminal = (rule.lhs.length === 1 && nonTerminals.has(rule.lhs));
@@ -145,10 +115,6 @@ export class GrammarModel {
       }
     }
 
-    // Step 2: Check Type 3 (Regular) conditions if Context-Free:
-    // A regular grammar must be either entirely Right-Linear or entirely Left-Linear.
-    // Right-Linear: A -> wB or A -> w, where w is terminal string, B is single non-terminal.
-    // Left-Linear:  A -> Bw or A -> w, where w is terminal string, B is single non-terminal.
     let isType3 = false;
     let isRightLinear = isContextFree;
     let isLeftLinear = isContextFree;
@@ -157,11 +123,9 @@ export class GrammarModel {
       for (const rule of this.rules) {
         const rhs = rule.rhs;
         if (rhs === '') {
-          // Epsilon is allowed in regular grammars
           continue;
         }
 
-        // Count non-terminals in RHS
         const rhsNTs = [];
         for (let i = 0; i < rhs.length; i++) {
           if (nonTerminals.has(rhs[i])) {
@@ -177,11 +141,9 @@ export class GrammarModel {
 
         if (rhsNTs.length === 1) {
           const ntPos = rhsNTs[0].index;
-          // For right-linear: NT must be at the very end
           if (ntPos !== rhs.length - 1) {
             isRightLinear = false;
           }
-          // For left-linear: NT must be at the very start
           if (ntPos !== 0) {
             isLeftLinear = false;
           }
@@ -199,10 +161,10 @@ export class GrammarModel {
         type: 3,
         typeName: ChomskyType.TYPE_3,
         level: 'Type-3',
-        description: `Regular Grammar (${form}). Generates regular languages recognized by Finite State Automata (DFA/NFA).`,
+        description: `Regular Grammar (${form}). Generates regular languages recognised by Finite State Automata (DFA/NFA).`,
         details: [
           `All rules have a single non-terminal on LHS.`,
-          `Rules follow ${form} structure (A → wB or A → w).`,
+          `Rules follow ${form} structure (A -> wB or A -> w).`,
           `Can be parsed linearly in O(n) time.`
         ],
         isRightLinear,
@@ -217,11 +179,11 @@ export class GrammarModel {
         type: 2,
         typeName: ChomskyType.TYPE_2,
         level: 'Type-2',
-        description: 'Context-Free Grammar (CFG). Generates context-free languages recognized by Pushdown Automata (PDA).',
+        description: 'Context-Free Grammar (CFG). Generates context-free languages recognised by Pushdown Automata (PDA).',
         details: [
           'Every rule LHS is a single non-terminal symbol.',
           'Contains branching / nested patterns not conforming to linear regular constraints.',
-          'Can be parsed via CYK or Earley algorithms in polynomial time O(n³).'
+          'Can be parsed via CYK or Earley algorithms in polynomial time O(n^3).'
         ],
         isRightLinear: false,
         isLeftLinear: false,
@@ -230,14 +192,10 @@ export class GrammarModel {
       };
     }
 
-    // Step 3: Check Type 1 (Context-Sensitive / Non-contracting)
-    // Constraint: |LHS| <= |RHS| for all rules, and LHS contains at least one non-terminal.
-    // Exception: S -> epsilon is allowed if S does not appear on RHS of any rule.
     let isContextSensitive = true;
     const startSymbolInRhs = this.rules.some(r => r.rhs.includes(this.startSymbol));
 
     for (const rule of this.rules) {
-      // LHS must contain at least one non-terminal
       const lhsHasNT = Array.from(rule.lhs).some(c => nonTerminals.has(c));
       if (!lhsHasNT) {
         isContextSensitive = false;
@@ -245,9 +203,7 @@ export class GrammarModel {
         break;
       }
 
-      // Non-contracting check: |LHS| <= |RHS|
       if (rule.lhs.length > rule.rhs.length) {
-        // Exception: S -> epsilon allowed only if S does not appear on any RHS
         if (rule.lhs === this.startSymbol && rule.rhs === '' && !startSymbolInRhs) {
           continue;
         }
@@ -262,9 +218,9 @@ export class GrammarModel {
         type: 1,
         typeName: ChomskyType.TYPE_1,
         level: 'Type-1',
-        description: 'Context-Sensitive Grammar (CSG / Monotonic). Recognized by Linear-Bounded Automata (LBA).',
+        description: 'Context-Sensitive Grammar (CSG / Monotonic). Recognised by Linear-Bounded Automata (LBA).',
         details: [
-          'All rules are non-contracting (|LHS| ≤ |RHS|).',
+          'All rules are non-contracting (|LHS| <= |RHS|).',
           'Every LHS contains at least one non-terminal symbol.',
           'Word recognition is decidable (PSPACE-complete).'
         ],
@@ -275,7 +231,6 @@ export class GrammarModel {
       };
     }
 
-    // Otherwise Type 0: Unrestricted / Semi-Thue system
     return {
       type: 0,
       typeName: ChomskyType.TYPE_0,
