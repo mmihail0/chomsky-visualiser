@@ -167,6 +167,56 @@ class ChomskyApp {
         this.switchTab('visualizer');
       });
     });
+
+    this.initWorkspaceResizer();
+  }
+
+  initWorkspaceResizer() {
+    const resizer = document.getElementById('workspace-resizer');
+    const bottomPanels = document.querySelector('.bottom-panels-container');
+    const mainWorkspace = document.querySelector('.main-workspace');
+
+    if (!resizer || !bottomPanels || !mainWorkspace) return;
+
+    let isDragging = false;
+    let startY = 0;
+    let startHeight = 0;
+
+    const onMouseDown = (e) => {
+      isDragging = true;
+      startY = e.clientY;
+      startHeight = bottomPanels.offsetHeight;
+      resizer.classList.add('dragging');
+      document.body.style.cursor = 'row-resize';
+      document.body.style.userSelect = 'none';
+    };
+
+    const onMouseMove = (e) => {
+      if (!isDragging) return;
+      const dy = startY - e.clientY;
+      const workspaceHeight = mainWorkspace.clientHeight;
+      const minH = 60;
+      const maxH = workspaceHeight - 120;
+      const newHeight = Math.max(minH, Math.min(maxH, startHeight + dy));
+      bottomPanels.style.height = `${newHeight}px`;
+      bottomPanels.style.flex = 'none';
+    };
+
+    const onMouseUp = () => {
+      if (isDragging) {
+        isDragging = false;
+        resizer.classList.remove('dragging');
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+        if (this.visualizer) {
+          this.visualizer.fitToScreen();
+        }
+      }
+    };
+
+    resizer.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
   }
 
   switchTab(tabKey) {
