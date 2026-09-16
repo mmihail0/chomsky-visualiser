@@ -98,12 +98,8 @@
               <div class="action-grid-2">
                 <button id="btn-recognize" class="btn btn-primary">Recognise</button>
                 <button id="btn-step" class="btn">Step</button>
-                <button id="btn-autoplay" class="btn">Auto-Play</button>
+                <button id="btn-clear-tree" class="btn" title="Clear derivation tree and restart engine without resetting rules">Clear Tree</button>
                 <button id="btn-pause" class="btn">Pause</button>
-              </div>
-              
-              <div style="margin-top: 6px;">
-                <button id="btn-clear-tree" class="btn" style="width: 100%;" title="Clear derivation tree and restart engine without resetting rules">Clear Tree</button>
               </div>
 
               <div class="slider-container">
@@ -351,6 +347,13 @@
             When all rules satisfy <span class="theory-code">|LHS| ≤ |RHS|</span>, derived string lengths never decrease. 
             If a state's length exceeds the target string length, that branch can never reach the target and is safely pruned, 
             significantly reducing search space without compromising completeness.
+          </p>
+
+          <h3>Visualisation Performance &amp; Canvas Scaling</h3>
+          <p>
+            If the derivation tree grows exceptionally large and you zoom out to view the entire structure, 
+            browsing through the tree will become laggy due to the high density of rendered SVG elements and DOM operations. 
+            Adjusting depth limits or using length pruning keeps tree sizes manageable for smooth rendering.
           </p>
 
         </div>
