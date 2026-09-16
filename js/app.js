@@ -44,7 +44,6 @@ class ChomskyApp {
 
     this.btnRecognize = document.getElementById('btn-recognize');
     this.btnStep = document.getElementById('btn-step');
-    this.btnAutoPlay = document.getElementById('btn-autoplay');
     this.btnPause = document.getElementById('btn-pause');
     this.btnClearTree = document.getElementById('btn-clear-tree');
     this.sliderSpeed = document.getElementById('slider-speed');
@@ -140,7 +139,6 @@ class ChomskyApp {
 
     this.btnRecognize.addEventListener('click', () => this.startRealtimeSearch());
     this.btnStep.addEventListener('click', () => this.stepSearch());
-    this.btnAutoPlay.addEventListener('click', () => this.toggleAutoPlay());
     this.btnPause.addEventListener('click', () => this.pauseSearch());
     this.btnClearTree.addEventListener('click', () => this.clearTree());
 
@@ -337,8 +335,6 @@ class ChomskyApp {
     this.isSearching = true;
 
     this.btnRecognize.classList.add('pressed');
-    this.btnAutoPlay.textContent = 'Pause';
-    this.btnAutoPlay.classList.add('pressed');
     this.statusIndicator.className = 'status-badge status-searching';
     this.statusIndicator.textContent = 'SEARCHING';
 
@@ -383,8 +379,6 @@ class ChomskyApp {
       this.searchTimer = null;
     }
     this.btnRecognize.classList.remove('pressed');
-    this.btnAutoPlay.textContent = 'Auto-Play';
-    this.btnAutoPlay.classList.remove('pressed');
   }
 
   stepSearch() {
@@ -408,14 +402,6 @@ class ChomskyApp {
       this.renderFailureInTracer(res.reason || 'Target string unreachable');
       this.statusIndicator.className = 'status-badge status-failure';
       this.statusIndicator.textContent = 'FAILED';
-    }
-  }
-
-  toggleAutoPlay() {
-    if (this.isSearching) {
-      this.pauseSearch();
-    } else {
-      this.startRealtimeSearch();
     }
   }
 
