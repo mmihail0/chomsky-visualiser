@@ -6,6 +6,9 @@ A browser-based playground for formal grammars and string rewriting systems. You
 
 The tool covers the full Chomsky hierarchy from Type-3 (Regular) up to Type-0 (Unrestricted / Semi-Thue systems), auto-detects which tier your grammar belongs to, and prunes dead branches keep it fast.
 
+If the documentation below didn't explain it well enough, then check out <br>
+https://web.stanford.edu/class/archive/cs/cs143/cs143.1128/handouts/080%20Formal%20Grammars.pdf
+
 <h2> DOCUMENTATION </h2>
 
 ### Key Features
